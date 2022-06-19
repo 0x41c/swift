@@ -164,6 +164,17 @@ class ValidateIfConfigCondition :
            isModulePath(UDE->getBase());
   }
 
+  /// True for expressions representing either top level modules
+  /// or nested submodules. This also is true for symbols stemming
+  /// from a module expression.
+  bool isModulePathOrSymbol(Expr *E) {
+    auto UDE = dyn_cast<UnresolvedDotExpr>(E);
+    if (!UDE)
+      return getDeclRefStr(E, DeclRefKind::Ordinary).hasValue();
+
+    return isModulePath(UDE->getBase());
+  }
+
   Expr *diagnoseUnsupportedExpr(Expr *E) {
     D.diagnose(E->getLoc(),
                diag::unsupported_conditional_compilation_expression_type);
@@ -320,10 +331,18 @@ public:
       return E;
     }
 
-    if (*KindName == "canImport") {
-      if (!isModulePath(Arg)) {
+    if (*KindName == "canImport" || *KindName == "hasSymbol") {
+      bool (ValidateIfConfigCondition::*isValidPath)(Expr *);
+      isValidPath = *KindName == "canImport"
+                        ? &ValidateIfConfigCondition::isModulePath
+                        : &ValidateIfConfigCondition::isModulePathOrSymbol;
+      const char *diagArg = *KindName == "canImport"
+                                ? "module name"
+                                : "full symbol name";
+
+      if (!(this->*isValidPath)(Arg)) {
         D.diagnose(E->getLoc(), diag::unsupported_platform_condition_argument,
-                   "module name");
+                   diagArg);
         return nullptr;
       }
       return E;
@@ -369,6 +388,8 @@ public:
         DiagName = "target environment"; break;
       case PlatformConditionKind::PtrAuth:
         DiagName = "pointer authentication scheme"; break;
+      case PlatformConditionKind::HasSymbol:
+        DiagName = "conditional symbol use"; break;
       case PlatformConditionKind::Runtime:
         llvm_unreachable("handled above");
       }

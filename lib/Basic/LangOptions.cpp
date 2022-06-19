@@ -108,6 +108,7 @@ ArrayRef<SupportedConditionalValue> getSupportedConditionalCompilationValues(con
   case PlatformConditionKind::Runtime:
     return SupportedConditionalCompilationRuntimes;
   case PlatformConditionKind::CanImport:
+  case PlatformConditionKind::HasSymbol:
     return { };
   case PlatformConditionKind::TargetEnvironment:
     return SupportedConditionalCompilationTargetEnvironments;
@@ -177,6 +178,7 @@ checkPlatformConditionSupported(PlatformConditionKind Kind, StringRef Value,
   case PlatformConditionKind::PtrAuth:
     return isMatching(Kind, Value, suggestedKind, suggestedValues);
   case PlatformConditionKind::CanImport:
+  case PlatformConditionKind::HasSymbol:
     // All importable names are valid.
     // FIXME: Perform some kind of validation of the string?
     return true;

@@ -43,5 +43,8 @@ PLATFORM_CONDITION(TargetEnvironment, "targetEnvironment")
 /// Pointer authentication enabled
 PLATFORM_CONDITION_(PtrAuth, "ptrauth")
 
+// Conditional use of a symbol
+PLATFORM_CONDITION_(HasSymbol, "hasSymbol")
+
 #undef PLATFORM_CONDITION
 #undef PLATFORM_CONDITION_
